@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  app:
+    build:
+      dockerfile: ./docker/php-fpm/Dockerfile
+      context: .
+      args: 
+        - "USERID=1001"
+    container_name: app
+    tty: true
+    working_dir: /var/www/html
+    environment: 
+      - "USERD:1001"
+    volumes: 
+      - ./:/var/www/html
+      - ./storage:/var/www/html/storage
+    networks: 
+      - mynetwork
+  nginx:
+    container_name: nginx
+    image: nginx:alpine
+    # tty: true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/html/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    networks: 
+      - mynetwork
+# Mysql Database      
+  db:
+    image: mysql:5.7
+    container_name: db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: laraveldb
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravelpassworddb
+      MYSQL_ROOT_PASSWORD: rootpasswordmysql
+    volumes:
+      - mysqldata:/var/lib/mysql/
+    networks:
+      - mynetwork
+
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  mysqldata:
+    driver: local
